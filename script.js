@@ -1,3 +1,4 @@
+const version = "v1.1"
 var game;
 
 var canvas_W = 750;
@@ -27,6 +28,7 @@ var musicConfig;
 var enemy_2_sound;
 var enemy_1_sound;
 var enemy_die;
+
 
 // -------------- CONFIG ---------------
 var config = {
@@ -338,6 +340,11 @@ function create() {
         fill: '#000'
     });
 
+    let versionText = this.add.text(canvas_W - 85, canvas_H - 12, "version: " + version, {
+        fontSize: '10px',
+        fill: '#000'
+    });
+
     // PHYSICS
     this.physics.add.overlap(game.players[0], game.bread, collectBread, null, this);
     this.physics.add.collider(game.bread, game.platforms);
@@ -490,11 +497,17 @@ function update() {
         if (game.mode == "single") {
             singleModeLoose();
         } else if (game.mode == "cooperative") {
-            try { cooperateModeLoose(); }
-            catch(e) { console.log("no player 2 yet"); }
+            try {
+                cooperateModeLoose();
+            } catch (e) {
+                console.log("no player 2 yet");
+            }
         } else {
-            try { enemyModeLoose(); }
-            catch(e) { console.log("no player 2 yet"); }
+            try {
+                enemyModeLoose();
+            } catch (e) {
+                console.log("no player 2 yet");
+            }
         }
     }
 }
