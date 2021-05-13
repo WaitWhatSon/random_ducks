@@ -279,7 +279,7 @@ function create() {
             fill: '#000',
             fontStyle: "bold"
         });
-    } else if (game.mode == "cooperate") {
+    } else if (game.mode == "cooperative") {
         playerScoreText = this.add.text(16, 48, 'PLAYERS score: ' + game.players[0].score, {
             fontSize: '16px',
             fill: '#000',
@@ -489,10 +489,12 @@ function update() {
     if (!game.ended) {
         if (game.mode == "single") {
             singleModeLoose();
-        } else if (game.mode == "cooperate") {
-            cooperateModeLoose();
+        } else if (game.mode == "cooperative") {
+            try { cooperateModeLoose(); }
+            catch(e) { console.log("no player 2 yet"); }
         } else {
-            enemyModeLoose();
+            try { enemyModeLoose(); }
+            catch(e) { console.log("no player 2 yet"); }
         }
     }
 }
@@ -521,7 +523,7 @@ function breadDrop(scene) {
 
 function collectBread(_player, bread) {
     bread.disableBody(true, true);
-    if (game.mode == "enemy") {
+    if (game.mode == "versus") {
         if (_player == game.players[0]) {
             game.players[0].score += 1;
             playerScoreText.setText('PLAYER 1 score: ' + game.players[0].score);
@@ -554,7 +556,7 @@ function killEnemy(_player, _enemy) {
             playerScoreText.setText('PLAYER 1 score: ' + game.players[0].score);
         } else {
             game.players[1].score += 10; // dodałam 0 bo było 1
-            if (game.mode == "cooperate")
+            if (game.mode == "cooperative")
                 playerScoreText.setText('PLAYER 2 score: ' + (game.players[1].score + game.players[0].score));
             else
                 try {
@@ -630,12 +632,12 @@ function setSingleMode() {
 }
 
 function setCooperateMode() {
-    game.mode = "cooperate";
+    game.mode = "cooperative";
     restartGame();
 }
 
 function setEnemyMode() {
-    game.mode = "enemy";
+    game.mode = "versus";
     restartGame();
 }
 // CHECK WHO WINS
