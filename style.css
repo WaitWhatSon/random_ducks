@@ -1,0 +1,57 @@
+body {
+    display: flex;
+    float: left;
+}
+
+#game {
+    margin: 10px;
+    float: left;
+}
+
+#right-panel {
+    margin: 10px;
+    background-image: url("svg/rightside_image.svg");
+    width: 300px;
+}
+
+button {
+    margin: auto;
+    border-radius: 15px;
+    background: goldenrod;
+    width: 230px;
+    height: 30px;
+}
+
+ul.no-bullets {
+    list-style-type: none;
+    margin: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+    text-align: center;
+}
+
+@keyframes glowing {
+    0% {
+        background-color: #2ba805;
+        box-shadow: 0 0 3px #2ba805;
+    }
+
+    50% {
+        background-color: #49e819;
+        box-shadow: 0 0 10px #49e819;
+    }
+
+    100% {
+        background-color: #2ba805;
+        box-shadow: 0 0 3px #2ba805;
+    }
+}
+
+.glowing-button {
+    animation: glowing 1000ms infinite;
+}
