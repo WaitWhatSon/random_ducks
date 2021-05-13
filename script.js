@@ -1,4 +1,7 @@
-const version = "v1.1"
+const version = "v1.2"
+
+var freshGame = true;
+
 var game;
 
 var canvas_W = 750;
@@ -16,7 +19,7 @@ var playerScoreText;
 var player2ScoreText;
 var modeText;
 
-var cursors;
+var cursorKeys;
 
 var WASDKeys = {};
 
@@ -56,7 +59,7 @@ game = new Phaser.Game(config);
 game.height = 0;
 game.platform_count = 0;
 game.new = false;
-game.ended = false;
+game.ended = true;
 game.mode = "single";
 game.players = [];
 game.y_step = 0.5;
@@ -109,61 +112,211 @@ function preload() {
 
 // ======================== CREATE ==========================
 function create() {
-    // CAMERA
-    this.cameras.main.setBounds(0, 0, canvas_W, canvas_H);
-    // BACKGROUND IMAGE
-    background = this.add.image(canvas_W / 2, canvas_H / 2, 'background');
-    clouds = this.add.image(canvas_W / 2, canvas_H / 2, 'clouds');
-    clouds.count = 0
-    // WORLD BUILDING
-    game.platforms = this.physics.add.group();
-    addFirstLevelPlatform(this)
-    addSecondLevelPlatform(this)
-    // next platforms create in update()
-    // ------- PLAYERS --------
-    // PLAYER 1
-    game.players[0] = this.physics.add.sprite(50, 50, 'duck');
-    cursors = this.input.keyboard.createCursorKeys();
-    game.players[0].setBounce(0.2);
-    game.players[0].setCollideWorldBounds(false);
-    game.players[0].body.setMass(10);
-    game.players[0].max_platform = 0
-    game.players[0].score = 0
-    game.players[0].jump_stage = 0
-    game.players[0].dead = false
-    // PLAYER 2
-    if (game.mode != "single") {
-        game.players[1] = this.physics.add.sprite(canvas_W - 50, 50, 'duck2');
-        game.players[1].setBounce(0.2);
-        game.players[1].setCollideWorldBounds(false);
-        game.players[1].body.setMass(10);
-        game.players[1].max_platform = 0
-        game.players[1].score = 0
-        game.players[1].jump_stage = 0
-        game.players[1].dead = false
-        WASDKeys.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-        WASDKeys.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-        WASDKeys.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-        WASDKeys.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+
+    if (freshGame) {
+        // CAMERA
+        // BACKGROUND IMAGE
+        background = this.add.image(canvas_W / 2, canvas_H / 2, 'background_cooperative');
+        game.players[0] = this.physics.add.sprite(5000, 50, 'duck');
+        cursorKeys = this.input.keyboard.createCursorKeys()
+
+        modeText = this.add.text(16, canvas_H - 32, game.mode, {
+            fontSize: '18px',
+            fill: '#000'
+        });
+
+        let versionText = this.add.text(canvas_W - 85, canvas_H - 12, "version: " + version, {
+            fontSize: '10px',
+            fill: '#000'
+        });
+
+        winningText = this.add.text(canvas_W / 2 - 220, 60, 'Start new game', {
+            fontSize: '50px',
+            fill: '#fff',
+            strokeThickness: 10,
+            stroke: '#000',
+            shadowStroke: true,
+            fontStyle: "bold"
+        });
+
+        document.getElementById("new_game").classList.add("glowing-button")
+
+    } else {
+        // CAMERA
+        this.cameras.main.setBounds(0, 0, canvas_W, canvas_H);
+        // BACKGROUND IMAGE
+        background = this.add.image(canvas_W / 2, canvas_H / 2, 'background');
+        clouds = this.add.image(canvas_W / 2, canvas_H / 2, 'clouds');
+        clouds.count = 0
+        // WORLD BUILDING
+        game.platforms = this.physics.add.group();
+        addFirstLevelPlatform(this)
+        addSecondLevelPlatform(this)
+        // next platforms create in update()
+        // ------- PLAYERS --------
+        // PLAYER 1
+        game.players[0] = this.physics.add.sprite(50, 50, 'duck');
+        cursorKeys = this.input.keyboard.createCursorKeys()
+        game.players[0].setBounce(0.2);
+        game.players[0].setCollideWorldBounds(false);
+        game.players[0].body.setMass(10);
+        game.players[0].max_platform = 0
+        game.players[0].score = 0
+        game.players[0].jump_stage = 0
+        game.players[0].dead = false
+        // PLAYER 2
+        if (game.mode != "single") {
+            game.players[1] = this.physics.add.sprite(canvas_W - 50, 50, 'duck2');
+            game.players[1].setBounce(0.2);
+            game.players[1].setCollideWorldBounds(false);
+            game.players[1].body.setMass(10);
+            game.players[1].max_platform = 0
+            game.players[1].score = 0
+            game.players[1].jump_stage = 0
+            game.players[1].dead = false
+            WASDKeys.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+            WASDKeys.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+            WASDKeys.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+            WASDKeys.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+        }
+        // ENEMY
+        game.enemy = this.physics.add.sprite(1000, 0, 'enemy');
+        game.enemy.setCollideWorldBounds(false);
+        game.enemy.body.setAllowGravity(false);
+        game.enemy.setImmovable(true);
+
+        game.enemy_2 = this.physics.add.sprite(1000, 0, 'enemy_2');
+        game.enemy_2.setCollideWorldBounds(false);
+        game.enemy_2.body.setAllowGravity(false);
+        game.enemy_2.setImmovable(true);
+        game.enemy_2.angle = 0;
+        game.enemy_2.angle_r = 0;
+        game.enemy_2.setSize(20, 60);
+        game.enemy_2.dir = 0;
+        game.enemy_2.speed = 7;
+
+        // ---------- ANIMATIONS ------------
+        // -------- ducks animation ---------
+
+
+        game.enemy.anims.play('fly', true);
+        game.enemy_2.anims.play('fly_2', true);
+        // BREAD
+        game.bread = this.physics.add.group({
+            key: 'bread',
+            repeat: 11,
+            setXY: {
+                x: 12,
+                y: 0,
+                stepX: 70
+            }
+        });
+        game.bread.children.iterate(function (child) {
+            child.setBounceY(Phaser.Math.FloatBetween(0.1, 0.4));
+        });
+        // TEXT init
+        if (game.mode == "single") {
+            playerScoreText = this.add.text(16, 48, 'PLAYER score: ' + game.players[0].score, {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+            heightText = this.add.text(16, 16, 'Platforms: 0', {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+        } else if (game.mode == "cooperative") {
+            playerScoreText = this.add.text(16, 48, 'PLAYERS score: ' + game.players[0].score, {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+            heightText = this.add.text(16, 16, 'Player 1 platforms: 0', {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+            heightText2 = this.add.text(16, 30, 'Player 2 platforms: 0', {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+        } else {
+            playerScoreText = this.add.text(16, 48, 'PLAYER 1 score: ' + game.players[0].score, {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+            player2ScoreText = this.add.text(16, 60, 'PLAYER 2 score: ' + game.players[1].score, {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+            heightText = this.add.text(16, 16, 'Player 1 platforms: 0', {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+            heightText2 = this.add.text(16, 30, 'Player 2 platforms: 0', {
+                fontSize: '16px',
+                fill: '#000',
+                fontStyle: "bold"
+            });
+        }
+        winningText = this.add.text(canvas_W / 2 - 150, 60, '', {
+            fontSize: '50px',
+            fill: '#fff',
+            strokeThickness: 10,
+            stroke: '#000',
+            shadowStroke: true,
+            fontStyle: "bold"
+        });
+        endScoreText = this.add.text(120, canvas_H - 80, '', {
+            fontSize: '50px',
+            fill: '#fff',
+            strokeThickness: 10,
+            stroke: '#000',
+            shadowStroke: true,
+            fontStyle: "bold"
+        });
+        // ------------------------------------------------------
+        modeText = this.add.text(16, canvas_H - 32, game.mode, {
+            fontSize: '18px',
+            fill: '#000'
+        });
+
+        let versionText = this.add.text(canvas_W - 85, canvas_H - 12, "version: " + version, {
+            fontSize: '10px',
+            fill: '#000'
+        });
+
+        // PHYSICS
+        this.physics.add.overlap(game.players[0], game.bread, collectBread, null, this);
+        this.physics.add.collider(game.bread, game.platforms);
+
+        this.physics.add.collider(game.players[0], game.platforms, platformCollision);
+        this.physics.add.collider(game.players[0], game.enemy, killEnemy);
+        this.physics.add.overlap(game.players[0], game.enemy, enemyAttack, null, this);
+        this.physics.add.collider(game.players[0], game.enemy_2);
+        this.physics.add.overlap(game.players[0], game.enemy_2, enemyAttack, null, this);
+        if (game.mode != "single") {
+            this.physics.add.collider(game.players[1], game.platforms, platformCollision);
+            this.physics.add.collider(game.players[0], game.players[1]);
+            this.physics.add.collider(game.players[1], game.enemy, killEnemy);
+            this.physics.add.overlap(game.players[1], game.bread, collectBread, null, this);
+            this.physics.add.overlap(game.players[1], game.enemy, enemyAttack, null, this);
+            this.physics.add.collider(game.players[1], game.enemy_2);
+            this.physics.add.overlap(game.players[1], game.enemy_2, enemyAttack, null, this);
+        }
+
+        // Starts animations, removes glowing button
+        game.ended = false
+        document.getElementById("new_game").classList.remove("glowing-button")
+
     }
-    // ENEMY
-    game.enemy = this.physics.add.sprite(1000, 0, 'enemy');
-    game.enemy.setCollideWorldBounds(false);
-    game.enemy.body.setAllowGravity(false);
-    game.enemy.setImmovable(true);
 
-    game.enemy_2 = this.physics.add.sprite(1000, 0, 'enemy_2');
-    game.enemy_2.setCollideWorldBounds(false);
-    game.enemy_2.body.setAllowGravity(false);
-    game.enemy_2.setImmovable(true);
-    game.enemy_2.angle = 0;
-    game.enemy_2.angle_r = 0;
-    game.enemy_2.setSize(20, 60);
-    game.enemy_2.dir = 0;
-    game.enemy_2.speed = 7;
 
-    // ---------- ANIMATIONS ------------
-    // -------- ducks animation ---------
     this.anims.create({
         key: 'left',
         frames: this.anims.generateFrameNumbers('duck', {
@@ -254,122 +407,6 @@ function create() {
         repeat: 10
     });
 
-    game.enemy.anims.play('fly', true);
-    game.enemy_2.anims.play('fly_2', true);
-    // BREAD
-    game.bread = this.physics.add.group({
-        key: 'bread',
-        repeat: 11,
-        setXY: {
-            x: 12,
-            y: 0,
-            stepX: 70
-        }
-    });
-    game.bread.children.iterate(function (child) {
-        child.setBounceY(Phaser.Math.FloatBetween(0.1, 0.4));
-    });
-    // TEXT init
-    if (game.mode == "single") {
-        playerScoreText = this.add.text(16, 48, 'PLAYER score: ' + game.players[0].score, {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-        heightText = this.add.text(16, 16, 'Platforms: 0', {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-    } else if (game.mode == "cooperative") {
-        playerScoreText = this.add.text(16, 48, 'PLAYERS score: ' + game.players[0].score, {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-        heightText = this.add.text(16, 16, 'Player 1 platforms: 0', {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-        heightText2 = this.add.text(16, 30, 'Player 2 platforms: 0', {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-    } else {
-        playerScoreText = this.add.text(16, 48, 'PLAYER 1 score: ' + game.players[0].score, {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-        player2ScoreText = this.add.text(16, 60, 'PLAYER 2 score: ' + game.players[1].score, {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-        heightText = this.add.text(16, 16, 'Player 1 platforms: 0', {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-        heightText2 = this.add.text(16, 30, 'Player 2 platforms: 0', {
-            fontSize: '16px',
-            fill: '#000',
-            fontStyle: "bold"
-        });
-    }
-    winningText = this.add.text(canvas_W / 2 - 150, 60, '', {
-        fontSize: '50px',
-        fill: '#fff',
-        strokeThickness: 10,
-        stroke: '#000',
-        shadowStroke: true,
-        fontStyle: "bold"
-    });
-    endScoreText = this.add.text(120, canvas_H - 80, '', {
-        fontSize: '50px',
-        fill: '#fff',
-        strokeThickness: 10,
-        stroke: '#000',
-        shadowStroke: true,
-        fontStyle: "bold"
-    }); // ------------------------------------------------------
-    modeText = this.add.text(16, canvas_H - 32, game.mode, {
-        fontSize: '18px',
-        fill: '#000'
-    });
-
-    let versionText = this.add.text(canvas_W - 85, canvas_H - 12, "version: " + version, {
-        fontSize: '10px',
-        fill: '#000'
-    });
-
-    // PHYSICS
-    this.physics.add.overlap(game.players[0], game.bread, collectBread, null, this);
-    this.physics.add.collider(game.bread, game.platforms);
-
-    this.physics.add.collider(game.players[0], game.platforms, platformCollision);
-    this.physics.add.collider(game.players[0], game.enemy, killEnemy);
-    this.physics.add.overlap(game.players[0], game.enemy, enemyAttack, null, this);
-    this.physics.add.collider(game.players[0], game.enemy_2);
-    this.physics.add.overlap(game.players[0], game.enemy_2, enemyAttack, null, this);
-    if (game.mode != "single") {
-        this.physics.add.collider(game.players[1], game.platforms, platformCollision);
-        this.physics.add.collider(game.players[0], game.players[1]);
-        this.physics.add.collider(game.players[1], game.enemy, killEnemy);
-        this.physics.add.overlap(game.players[1], game.bread, collectBread, null, this);
-        this.physics.add.overlap(game.players[1], game.enemy, enemyAttack, null, this);
-        this.physics.add.collider(game.players[1], game.enemy_2);
-        this.physics.add.overlap(game.players[1], game.enemy_2, enemyAttack, null, this);
-    }
-
-    console.log(game.players[1]);
-
-    // Starts animations, removes glowing button
-    game.ended = false;
-    document.getElementById("new_game").classList.remove("glowing-button")
-
     // ------------ SOUNDS ---------------
     squeek1 = this.sound.add('squeek1');
     squeek2 = this.sound.add('squeek2');
@@ -382,6 +419,7 @@ function create() {
     enemy_1_sound = this.sound.add('enemy_1_sound');
     enemy_2_sound = this.sound.add('enemy_2_sound');
     enemy_die = this.sound.add('enemy_die');
+
 }
 
 // ======================= UPDATE ========================
@@ -408,11 +446,15 @@ function update() {
         this.scene.restart();
         game.new = false;
     }
+
+    if (freshGame)
+        return
+
     // PLAYER
-    if (cursors.left.isDown) {
+    if (cursorKeys.left.isDown) {
         game.players[0].setVelocityX(-250);
         game.players[0].anims.play('left', true);
-    } else if (cursors.right.isDown) {
+    } else if (cursorKeys.right.isDown) {
         game.players[0].setVelocityX(250);
         game.players[0].anims.play('right', true);
     } else {
@@ -421,13 +463,13 @@ function update() {
     }
 
     // Jumping w/ double jump
-    if (cursors.up.isDown && game.players[0].body.touching.down && game.players[0].jump_stage == 0) {
+    if (cursorKeys.up.isDown && game.players[0].body.touching.down && game.players[0].jump_stage == 0) {
         game.players[0].setVelocityY(-700);
         game.players[0].jump_stage = 1;
         squeek1.play();
-    } else if (!cursors.up.isDown && !game.players[0].body.touching.down && game.players[0].jump_stage == 1) {
+    } else if (!cursorKeys.up.isDown && !game.players[0].body.touching.down && game.players[0].jump_stage == 1) {
         game.players[0].jump_stage = 2;
-    } else if (cursors.up.isDown && !game.players[0].body.touching.down && game.players[0].jump_stage == 2) {
+    } else if (cursorKeys.up.isDown && !game.players[0].body.touching.down && game.players[0].jump_stage == 2) {
         game.players[0].setVelocityY(-700);
         game.players[0].jump_stage = 3;
         squeek1.play();
@@ -601,6 +643,7 @@ function platformCollision(_player, platform) {
 
 
 function startNewGame() {
+    freshGame = false;
     restartGame()
 }
 
@@ -609,6 +652,13 @@ function endGame() {
     game.ended = true;
     document.getElementById("new_game").classList.add("glowing-button")
     // cleaning sprites off screen
+    clearAllSprites()
+
+    game.y_step = 0.5;
+    music.stop();
+}
+
+function clearAllSprites() {
     game.platforms.children.iterate((child) => {
         child.x = 5000;
     });
@@ -622,10 +672,6 @@ function endGame() {
         game.enemy_2.destroy()
         clouds.destroy()
     } catch {}
-
-    game.y_step = 0.5;
-
-    music.stop();
 }
 
 function restartGame() {
@@ -668,6 +714,7 @@ function singleModeLoose() {
 
         if (localStorage.highScore < score) {
             localStorage.highScore = score
+            winningText.setText('NEW BEST SCORE');
             background.setTexture('background_single_new_high')
         }
 

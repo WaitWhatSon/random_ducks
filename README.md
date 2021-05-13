@@ -11,18 +11,9 @@ Podstawa na zaliczenie (1): sterowanie myszą lub/i klawiaturą, poruszające si
  - [x] (+1) Większy świat gry (np. scrollowana plansza, poziomy, przechodzenie między ekranami pomieszczeń).
  ________________
 
-
-
-Pomysły 
- * Power up - przyśpieszenie, wyższy skok
- * Życia?
- * Jakiś wróg chodzący po platformie, można go zabić skokiem z góry
- * lepsze ziarno - więcej punktów 
- * double jump
-
 ## Credits
 ### Development:
--[JanekKar] (https://github.com/JanekKar)
--[WaitWhatSon](https://github.com/WaitWhatSon)
+* [JanekKar](https://github.com/JanekKar)
+* [WaitWhatSon](https://github.com/WaitWhatSon)
 ### Artwork:
 -[WaitWhatSon](https://github.com/WaitWhatSon)
